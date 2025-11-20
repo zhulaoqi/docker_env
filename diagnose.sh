@@ -24,7 +24,7 @@ echo ""
 # 检查每个容器的健康状态
 echo "3️⃣ 容器健康检查："
 echo ""
-containers=("zookeeper" "kafka" "spark-master" "spark-worker" "flink-jobmanager" "flink-taskmanager")
+containers=("zookeeper" "kafka" "kafka-ui" "spark-master" "spark-worker" "flink-jobmanager" "flink-taskmanager")
 
 for container in "${containers[@]}"; do
   if docker ps --format '{{.Names}}' | grep -q "^${container}$"; then
@@ -42,7 +42,7 @@ done
 # 检查端口占用
 echo "4️⃣ 端口监听状态："
 echo ""
-ports=("2181:Zookeeper" "9092:Kafka" "8080:Spark-Master" "8082:Spark-Worker" "8081:Flink" "7077:Spark-RPC")
+ports=("2181:Zookeeper" "9092:Kafka" "8088:Kafka-UI" "8080:Spark-Master" "8082:Spark-Worker" "8081:Flink" "7077:Spark-RPC")
 
 for port_info in "${ports[@]}"; do
   port="${port_info%%:*}"

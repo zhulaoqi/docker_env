@@ -37,6 +37,9 @@ wait_for_healthy zookeeper && echo "✅ Zookeeper 已就绪" || exit 1
 echo "⏳ 等待 Kafka 就绪..."
 wait_for_healthy kafka && echo "✅ Kafka 已就绪" || exit 1
 
+echo "⏳ 等待 Kafka UI 就绪..."
+wait_for_healthy kafka-ui && echo "✅ Kafka UI 已就绪" || exit 1
+
 echo "⏳ 等待 Spark Master 就绪..."
 wait_for_healthy spark-master && echo "✅ Spark Master 已就绪" || exit 1
 
@@ -50,7 +53,8 @@ echo ""
 echo "🎉 学习环境已全部启动完成！"
 echo ""
 echo "📍 服务访问地址："
-echo "  ✅ Kafka: localhost:9092"
+echo "  ✅ Kafka Broker: localhost:9092"
+echo "  ✅ Kafka UI: http://localhost:8088 (可视化管理界面)"
 echo "  ✅ Spark Master UI: http://localhost:8080"
 echo "  ✅ Spark Worker UI: http://localhost:8082"
 echo "  ✅ Flink JobManager UI: http://localhost:8081"
