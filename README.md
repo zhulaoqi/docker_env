@@ -31,7 +31,7 @@
 启动成功后，可以通过以下地址访问：
 
 - **Kafka Broker**: `localhost:9092`
-- **Kafka UI**: http://localhost:8088 🌟 **推荐：可视化管理界面**
+- **Kafka UI**: http://localhost:8088
 - **Spark Master UI**: http://localhost:8080
 - **Spark Worker UI**: http://localhost:8082
 - **Flink UI**: http://localhost:8081
