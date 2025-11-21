@@ -1,0 +1,47 @@
+FROM mcr.microsoft.com/playwright:v1.48.0-jammy
+
+USER root
+RUN apt-get update && apt-get install -y socat && rm -rf /var/lib/apt/lists/*
+
+EXPOSE 9222
+
+RUN printf '#!/bin/bash\n\
+set -e\n\
+\n\
+clean() {\n\
+  [ -n "$BROWSERSERVER_PID" ] && kill -TERM "$BROWSERSERVER_PID"\n\
+  [ -n "$CHROME_PID" ] && kill -TERM "$CHROME_PID"\n\
+}\n\
+\n\
+trap clean SIGINT SIGTERM EXIT\n\
+\n\
+echo "启动 Playwright Chrome CDP 服务..."\n\
+\n\
+if [ -f /usr/bin/browserserver ]; then\n\
+    echo "启动 Playwright browserserver..."\n\
+    /usr/bin/browserserver -browser chromium &\n\
+    BROWSERSERVER_PID=$!\n\
+fi\n\
+\n\
+echo "启动 Chromium CDP 在 0.0.0.0:9222 ..."\n\
+/ms-playwright/chromium-1140/chrome-linux/chrome \\\n\
+    --headless \\\n\
+    --remote-debugging-port=9222 \\\n\
+    --remote-debugging-address=0.0.0.0 \\\n\
+    --no-sandbox \\\n\
+    --disable-gpu \\\n\
+    --disable-dev-shm-usage \\\n\
+    --disable-web-security \\\n\
+    --disable-features=IsolateOrigins,site-per-process,HostHeaderValidation \\\n\
+    --window-size=1920,1080 &\n\
+CHROME_PID=$!\n\
+\n\
+echo "=========================================="\n\
+echo " CDP 服务已启动"\n\
+echo " → http://<pod-ip>:9222/json/version"\n\
+echo "=========================================="\n\
+\n\
+wait\n' > /entrypoint.sh && chmod +x /entrypoint.sh
+
+USER pwuser
+ENTRYPOINT ["/entrypoint.sh"]
