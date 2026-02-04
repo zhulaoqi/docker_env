@@ -6,11 +6,11 @@
 
 | 组件 | 镜像 | 版本 | 说明 |
 |------|------|------|------|
-| NameServer | apache/rocketmq | 4.9.7 | 路由注册中心 |
-| Broker | apache/rocketmq | 4.9.7 | 消息服务器 |
+| NameServer | apache/rocketmq | 5.1.1 | 路由注册中心 |
+| Broker | apache/rocketmq | 5.1.1 | 消息服务器（含 gRPC Proxy） |
 | Dashboard | apacherocketmq/rocketmq-dashboard | latest | 可视化管理界面 |
 
-✅ **稳定可靠**：使用 Apache RocketMQ 官方 4.9.7 稳定版本，通过 Rosetta 2 模拟 amd64 架构运行在 Mac ARM64，无 RocksDB 依赖，性能稳定。
+✅ **完全对齐**：使用 Apache RocketMQ 官方 5.1.1 版本（与 Java 客户端版本一致），原生支持 ARM64，已启用 gRPC Proxy。
 
 ## 🚀 快速开始
 
@@ -45,9 +45,26 @@ Dashboard 功能包括：
 
 ### 3. 连接信息
 
-- **NameServer**: `localhost:9876`
+- **NameServer（旧版 API）**: `localhost:9876`
+- **gRPC Proxy（5.x 新 API）**: `localhost:8081`
 - **Broker**: `localhost:10911`
 - **Dashboard**: `http://localhost:8080`
+
+#### Java 客户端配置示例
+
+**RocketMQ 5.x 新 API**（推荐，支持 gRPC）：
+```yaml
+rocketmq:
+  endpoints: localhost:8081
+  # 或使用 grpc 协议
+  # endpoints: grpc://localhost:8081
+```
+
+**RocketMQ 4.x 旧 API**（兼容）：
+```yaml
+rocketmq:
+  name-server: localhost:9876
+```
 
 ## 🛠️ 管理命令
 

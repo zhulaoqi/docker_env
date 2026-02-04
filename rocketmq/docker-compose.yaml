@@ -1,8 +1,7 @@
 services:
   # RocketMQ NameServer
   namesrv:
-    image: apache/rocketmq:4.9.7
-    platform: linux/amd64
+    image: apache/rocketmq:5.1.1
     container_name: rocketmq-namesrv
     hostname: namesrv
     ports:
@@ -21,8 +20,7 @@ services:
 
   # RocketMQ Broker  
   broker:
-    image: apache/rocketmq:4.9.7
-    platform: linux/amd64
+    image: apache/rocketmq:5.1.1
     container_name: rocketmq-broker
     hostname: broker
     depends_on:
@@ -31,13 +29,19 @@ services:
     ports:
       - "10909:10909"
       - "10911:10911"
+      - "8081:8081"
+      - "8082:8082"
     environment:
       NAMESRV_ADDR: "namesrv:9876"
-      JAVA_OPT_EXT: "-Xms512m -Xmx512m"
-    command: sh mqbroker -n namesrv:9876
+      # 本地开发建议关闭 TLS（避免自签名证书 + h2c/TLS 不匹配导致 gRPC Stream 提前关闭）
+      # 关闭后 Java 客户端使用：rocketmq.ssl-enabled=false + endpoints=localhost:8081
+      JAVA_OPT_EXT: "-Xms512m -Xmx512m -Dtls.server.mode=disabled -Dtls.test.mode.enable=false"
+    command: sh mqbroker -n namesrv:9876 --enable-proxy -c /home/rocketmq/broker.conf -pc /home/rocketmq/rocketmq-5.1.1/conf/rmq-proxy.json
     volumes:
       - ./data/broker-logs:/home/rocketmq/logs
       - ./data/broker-store:/home/rocketmq/store
+      - ./broker.conf:/home/rocketmq/broker.conf:ro
+      - ./rmq-proxy.json:/home/rocketmq/rocketmq-5.1.1/conf/rmq-proxy.json:ro
     healthcheck:
       test: ["CMD-SHELL", "sh mqadmin clusterList -n namesrv:9876 | grep -q 'Broker Name' || exit 1"]
       interval: 15s
