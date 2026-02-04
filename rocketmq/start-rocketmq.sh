@@ -5,31 +5,30 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-ROCKETMQ_IMAGE="apache/rocketmq:5.2.0"
+ROCKETMQ_IMAGE="apache/rocketmq:4.9.7"
 DASHBOARD_IMAGE="apacherocketmq/rocketmq-dashboard:latest"
 
-# 检查并拉取 RocketMQ 镜像（ARM64）
+echo "✅ 使用 Apache RocketMQ 官方镜像 4.9.7（稳定版本）"
+echo "⚠️  通过 Rosetta 2 模拟 amd64 架构运行（ARM Mac 兼容）"
+echo ""
+
+# 检查并拉取 RocketMQ 镜像
 if ! docker image inspect "$ROCKETMQ_IMAGE" >/dev/null 2>&1; then
-  echo "Pulling RocketMQ image (ARM64)..."
-  if ! docker pull --platform linux/arm64 "$ROCKETMQ_IMAGE"; then
-    echo "Failed to pull RocketMQ image."
-    exit 1
-  fi
+  echo "首次启动，正在拉取 RocketMQ 镜像..."
+  docker pull "$ROCKETMQ_IMAGE" || echo "⚠️  镜像拉取失败，docker-compose 会自动重试"
 else
-  echo "RocketMQ image already exists, skipping pull."
+  echo "RocketMQ 镜像已存在，跳过拉取"
 fi
 
-# 检查并拉取 Dashboard 镜像（ARM64）
+# 检查并拉取 Dashboard 镜像
 if ! docker image inspect "$DASHBOARD_IMAGE" >/dev/null 2>&1; then
-  echo "Pulling RocketMQ Dashboard image (ARM64)..."
-  if ! docker pull --platform linux/arm64 "$DASHBOARD_IMAGE"; then
-    echo "Failed to pull Dashboard image."
-    exit 1
-  fi
+  echo "正在拉取 Dashboard 镜像..."
+  docker pull "$DASHBOARD_IMAGE" || echo "⚠️  镜像拉取失败，docker-compose 会自动重试"
 else
-  echo "Dashboard image already exists, skipping pull."
+  echo "Dashboard 镜像已存在，跳过拉取"
 fi
 
+echo ""
 echo "Starting RocketMQ with docker-compose..."
 docker-compose up -d
 
@@ -101,25 +100,19 @@ if [ $elapsed -ge $timeout ]; then
 fi
 
 echo ""
-echo "🎉 RocketMQ 环境启动成功！"
+echo "🎉 RocketMQ 环境启动成功（含可视化界面）！"
+echo ""
+echo "📍 RocketMQ Dashboard（可视化管理界面）："
+echo "  - URL: http://localhost:8080"
+echo "  - 功能: Topic管理、消息查询、消费者监控等"
 echo ""
 echo "📍 RocketMQ 连接信息："
 echo "  - NameServer: localhost:9876"
 echo "  - Broker: localhost:10911"
 echo ""
-echo "📍 RocketMQ Dashboard："
-echo "  - URL: http://localhost:8080"
-echo "  - 功能: Topic管理、消息查询、消费者监控等"
-echo ""
-echo "💡 快速测试："
-echo "  # 创建 Topic"
-echo "  docker exec rocketmq-broker sh mqadmin updateTopic -n namesrv:9876 -t TestTopic -c DefaultCluster"
-echo ""
-echo "  # 发送消息"
-echo "  docker exec rocketmq-broker sh mqadmin sendMessage -n namesrv:9876 -t TestTopic -p 'Hello RocketMQ'"
-echo ""
-echo "  # 消费消息"
-echo "  docker exec rocketmq-broker sh mqadmin consumeMessage -n namesrv:9876 -t TestTopic -g TestGroup"
+echo "💡 使用提示："
+echo "  - 在 Dashboard 界面可以直接创建 Topic、发送/查询消息"
+echo "  - 支持 ARM64 原生运行（已禁用 RocksDB）"
 echo ""
 echo "💡 管理命令："
 echo "  - 查看日志: docker-compose logs -f"

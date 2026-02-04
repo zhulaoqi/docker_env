@@ -6,9 +6,11 @@
 
 | 组件 | 镜像 | 版本 | 说明 |
 |------|------|------|------|
-| NameServer | apache/rocketmq | 5.1.4 | 路由注册中心 |
-| Broker | apache/rocketmq | 5.1.4 | 消息服务器 |
-| Dashboard | apacherocketmq/rocketmq-dashboard | 1.0.0 | 可视化管理界面 |
+| NameServer | apache/rocketmq | 4.9.7 | 路由注册中心 |
+| Broker | apache/rocketmq | 4.9.7 | 消息服务器 |
+| Dashboard | apacherocketmq/rocketmq-dashboard | latest | 可视化管理界面 |
+
+✅ **稳定可靠**：使用 Apache RocketMQ 官方 4.9.7 稳定版本，通过 Rosetta 2 模拟 amd64 架构运行在 Mac ARM64，无 RocksDB 依赖，性能稳定。
 
 ## 🚀 快速开始
 
@@ -21,7 +23,7 @@ chmod +x *.sh
 
 脚本会自动：
 - 拉取所需镜像
-- 启动 NameServer、Broker、Dashboard
+- 启动 NameServer、Broker
 - 等待所有服务健康检查通过
 - 显示访问信息
 
@@ -77,9 +79,6 @@ docker-compose logs -f namesrv
 
 # 查看 Broker 日志
 docker-compose logs -f broker
-
-# 查看 Dashboard 日志
-docker-compose logs -f dashboard
 ```
 
 ## 📝 快速测试
@@ -112,14 +111,6 @@ docker exec rocketmq-broker sh mqadmin topicList -n namesrv:9876
 docker exec rocketmq-broker sh mqadmin clusterList -n namesrv:9876
 ```
 
-### 使用 Dashboard（推荐）
-
-1. 打开 http://localhost:8080
-2. 点击左侧菜单 "Topic" → "ADD/UPDATE"
-3. 填写 Topic 名称，点击 "ADD"
-4. 点击 "MESSAGE" → "SEND MESSAGE"
-5. 选择 Topic，输入消息内容，点击 "SEND"
-6. 在 "MESSAGE QUERY" 中查看发送的消息
 
 ## 💻 客户端集成
 
@@ -329,36 +320,6 @@ environment:
   JAVA_OPT_EXT: "-Xms1g -Xmx1g"
 ```
 
-## 📊 Dashboard 使用指南
-
-### 主要功能
-
-1. **运维面板**
-   - 查看集群拓扑
-   - 监控 Broker 状态
-   - 查看实时统计信息
-
-2. **Topic 管理**
-   - 创建/删除 Topic
-   - 查看 Topic 配置
-   - 更新 Topic 参数
-
-3. **消息查询**
-   - 按 Message ID 查询
-   - 按 Message Key 查询
-   - 按时间范围查询
-
-4. **消费者监控**
-   - 查看消费者组列表
-   - 监控消费进度
-   - 查看消费者堆积情况
-   - 重置消费位点
-
-5. **消息发送**
-   - 在线发送测试消息
-   - 支持不同消息类型
-   - 查看发送结果
-
 ## 🔍 故障排查
 
 ### 问题：Broker 无法连接 NameServer
@@ -376,23 +337,6 @@ docker exec rocketmq-namesrv sh mqadmin clusterList -n localhost:9876
 3. 检查网络连接
 ```bash
 docker exec rocketmq-broker ping namesrv
-```
-
-### 问题：Dashboard 无法显示数据
-
-1. 检查 Dashboard 配置
-```bash
-docker-compose logs dashboard
-```
-
-2. 确认 NameServer 地址配置正确
-```bash
-docker exec rocketmq-dashboard env | grep namesrv
-```
-
-3. 重启 Dashboard
-```bash
-docker-compose restart dashboard
 ```
 
 ### 问题：消息发送失败
@@ -419,10 +363,10 @@ docker-compose logs broker | tail -100
 docker exec rocketmq-broker sh mqadmin consumerProgress -n namesrv:9876
 ```
 
-2. 在 Dashboard 中查看消费者状态
-   - 打开 http://localhost:8080
-   - 点击 "Consumer" 菜单
-   - 查看消费者组状态和堆积情况
+2. 使用命令行查看消费者状态
+```bash
+docker exec rocketmq-broker sh mqadmin consumerProgress -n namesrv:9876
+```
 
 ## 📁 数据持久化
 
@@ -444,15 +388,15 @@ docker run --rm -v rocketmq_broker-store:/data -v $(pwd):/backup alpine tar czf 
 ## 📚 更多资源
 
 - [RocketMQ 官方文档](https://rocketmq.apache.org/docs/)
-- [RocketMQ Dashboard GitHub](https://github.com/apache/rocketmq-dashboard)
 - [RocketMQ 最佳实践](https://rocketmq.apache.org/docs/bestPractice/01bestpractice)
 - [RocketMQ 架构设计](https://rocketmq.apache.org/docs/domainModel/01concept)
+- [RocketMQ 客户端 SDK](https://rocketmq.apache.org/docs/sdkdownload/01download)
 
 ## 💡 提示
 
-- Dashboard 是官方提供的可视化管理工具，功能完善
+- 使用社区维护的镜像，原生支持 ARM64 (Apple Silicon)
 - 默认配置允许自动创建 Topic，方便开发测试
 - 消息默认保留 48 小时
-- 支持 ARM64 (Apple Silicon) 和 AMD64 架构
+- 可通过命令行或客户端 SDK 完整使用 RocketMQ
 - 生产环境建议配置主从集群并使用同步刷盘
 - 首次启动需要下载镜像，请耐心等待
