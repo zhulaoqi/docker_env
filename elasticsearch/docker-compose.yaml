@@ -1,0 +1,26 @@
+services:
+  elasticsearch:
+    image: elasticsearch:8.12.2
+    container_name: elasticsearch
+    hostname: elasticsearch
+    ports:
+      - "9200:9200" # REST API
+      - "9300:9300" # Transport
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - http.host=0.0.0.0
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200 >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+volumes:
+  es-data:
