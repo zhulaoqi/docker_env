@@ -1,0 +1,73 @@
+services:
+  # RocketMQ NameServer
+  namesrv:
+    image: apache/rocketmq:5.2.0
+    platform: linux/arm64
+    container_name: rocketmq-namesrv
+    hostname: namesrv
+    ports:
+      - "9876:9876"
+    environment:
+      JAVA_OPT_EXT: "-Xms512m -Xmx512m"
+    command: sh mqnamesrv
+    volumes:
+      - namesrv-logs:/home/rocketmq/logs
+    healthcheck:
+      test: ["CMD-SHELL", "sh mqadmin clusterList -n localhost:9876 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # RocketMQ Broker
+  broker:
+    image: apache/rocketmq:5.2.0
+    platform: linux/arm64
+    container_name: rocketmq-broker
+    hostname: broker
+    depends_on:
+      namesrv:
+        condition: service_healthy
+    ports:
+      - "10909:10909"
+      - "10911:10911"
+      - "10912:10912"
+    environment:
+      NAMESRV_ADDR: "namesrv:9876"
+      JAVA_OPT_EXT: "-Xms512m -Xmx512m"
+    command: sh mqbroker -c /home/rocketmq/broker.conf
+    volumes:
+      - broker-logs:/home/rocketmq/logs
+      - broker-store:/home/rocketmq/store
+      - ./broker.conf:/home/rocketmq/broker.conf
+    healthcheck:
+      test: ["CMD-SHELL", "sh mqadmin clusterList -n namesrv:9876 | grep -q BrokerName || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+
+  # RocketMQ Dashboard (可视化管理界面)
+  dashboard:
+    image: apacherocketmq/rocketmq-dashboard:latest
+    platform: linux/arm64
+    container_name: rocketmq-dashboard
+    hostname: dashboard
+    depends_on:
+      broker:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      JAVA_OPTS: "-Xms256m -Xmx256m -Drocketmq.namesrv.addr=namesrv:9876"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  namesrv-logs:
+  broker-logs:
+  broker-store:
