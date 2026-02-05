@@ -5,10 +5,10 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-ROCKETMQ_IMAGE="apache/rocketmq:5.1.1"
+ROCKETMQ_IMAGE="apache/rocketmq:5.1.4"
 DASHBOARD_IMAGE="apacherocketmq/rocketmq-dashboard:latest"
 
-echo "✅ 使用 Apache RocketMQ 官方镜像 5.1.1（与 Java 客户端完全对齐）"
+echo "✅ 使用 Apache RocketMQ 官方镜像 5.1.4（与 Java 客户端完全对齐）"
 echo "✨ TLS 已关闭，使用明文 gRPC（本地开发最简单）"
 echo ""
 
@@ -43,8 +43,8 @@ services_ready=false
 
 while [ $elapsed -lt $timeout ]; do
   # 检查各服务健康状态
-  namesrv_health=$(docker inspect --format='{{.State.Health.Status}}' rocketmq-namesrv 2>/dev/null || echo "starting")
-  broker_health=$(docker inspect --format='{{.State.Health.Status}}' rocketmq-broker 2>/dev/null || echo "starting")
+  namesrv_health=$(docker inspect --format='{{.State.Health.Status}}' rmqnamesrv 2>/dev/null || echo "starting")
+  broker_health=$(docker inspect --format='{{.State.Health.Status}}' rmqbroker 2>/dev/null || echo "starting")
   dashboard_health=$(docker inspect --format='{{.State.Health.Status}}' rocketmq-dashboard 2>/dev/null || echo "starting")
   
   if [ "$namesrv_health" = "healthy" ] && [ "$broker_health" = "healthy" ] && [ "$dashboard_health" = "healthy" ]; then
@@ -75,15 +75,26 @@ if [ "$services_ready" = "false" ]; then
   exit 1
 fi
 
+echo "🔧 初始化 Topic 属性..."
+for topic in topic_saa_studio_document_index group_saa_studio_document_index; do
+  if docker exec rmqbroker sh mqadmin updateTopic -n rmqnamesrv:9876 -t "$topic" -c DefaultCluster -a +message.type=NORMAL >/dev/null 2>&1; then
+    echo "✅ Topic 已初始化: $topic (message.type=NORMAL)"
+  else
+    echo "⚠️  Topic 初始化失败: $topic"
+    echo "  手动执行：docker exec rmqbroker sh mqadmin updateTopic -n rmqnamesrv:9876 -t $topic -c DefaultCluster -a +message.type=NORMAL"
+  fi
+done
+
 echo ""
 echo "🎉 RocketMQ 环境启动成功（含可视化界面）！"
 echo ""
 echo "📍 RocketMQ Dashboard（可视化管理界面）："
-echo "  - URL: http://localhost:8080"
+echo "  - URL: http://localhost:8082"
 echo "  - 功能: Topic管理、消息查询、消费者监控等"
 echo ""
 echo "📍 RocketMQ 连接信息："
 echo "  - NameServer: localhost:9876"
+echo "  - gRPC Proxy (5.x): localhost:8081"
 echo "  - Broker: localhost:10911"
 echo ""
 echo "💡 使用提示："
