@@ -29,15 +29,7 @@ while [ $elapsed -lt $timeout ]; do
   if curl -fsS "http://localhost:9200" >/dev/null 2>&1; then
     echo ""
     echo "✅ Elasticsearch is healthy and ready!"
-    echo ""
-    echo "📍 Endpoint: http://localhost:9200"
-    echo "📍 Transport: localhost:9300"
-    echo ""
-    echo "💡 Useful commands:"
-    echo "  - View logs: docker-compose logs -f elasticsearch"
-    echo "  - Stop: ./stop.sh"
-    echo "  - Cleanup: ./cleanup.sh"
-    exit 0
+    break
   fi
   sleep 3
   elapsed=$((elapsed + 3))
@@ -46,7 +38,26 @@ while [ $elapsed -lt $timeout ]; do
   fi
 done
 
+if [ $elapsed -ge $timeout ]; then
+  echo ""
+  echo "❌ Elasticsearch did not become healthy within ${timeout}s."
+  echo "Check logs: docker-compose logs -f elasticsearch"
+  exit 1
+fi
+
 echo ""
-echo "❌ Elasticsearch did not become healthy within ${timeout}s."
-echo "Check logs: docker-compose logs -f elasticsearch"
-exit 1
+echo "🔧 Running initialization script..."
+if bash "$SCRIPT_DIR/init-es.sh"; then
+  echo "✅ Elasticsearch initialization completed!"
+else
+  echo "⚠️  Initialization script failed, but Elasticsearch is running"
+  echo "You can manually run: bash init-es.sh"
+fi
+
+echo ""
+echo "📍 Endpoint: http://localhost:9200"
+echo ""
+echo "💡 Useful commands:"
+echo "  - View logs: docker-compose logs -f elasticsearch"
+echo "  - Stop: ./stop.sh"
+echo "  - Cleanup: ./cleanup.sh"

@@ -4,7 +4,7 @@
 
 ## 📦 镜像信息
 
-- **镜像**: `nacos/nacos-server:v2.3.2-slim`
+- **镜像**: `nacos/nacos-server:v3.1.1`（支持 MCP Registry）
 - **架构支持**: ARM64 (Apple Silicon) + AMD64
 - **模式**: Standalone（单机模式）
 
@@ -117,8 +117,8 @@ lsof -i :8848
 docker-compose down
 
 # 2. 删除并重新拉取镜像
-docker image rm nacos/nacos-server:v2.3.2-slim
-docker pull nacos/nacos-server:v2.3.2-slim
+docker image rm nacos/nacos-server:v3.1.1
+docker pull nacos/nacos-server:v3.1.1
 
 # 3. 重新启动
 ./start-nacos.sh
@@ -173,7 +173,7 @@ environment:
 
 ## 💡 提示
 
-- Slim 版本是精简版，功能完整但体积更小
+- v3.1.1 版本支持 MCP Registry、Agent 注册等 AI 架构特性
 - 默认使用内嵌数据库 Derby（适合开发测试）
 - 生产环境建议配置 MySQL 数据库
 - 首次启动需要下载镜像，请耐心等待

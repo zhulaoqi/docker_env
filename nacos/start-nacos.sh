@@ -5,7 +5,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-NACOS_IMAGE="nacos/nacos-server:v2.3.2-slim"
+NACOS_IMAGE="nacos/nacos-server:v3.1.1"
 
 # 检查镜像是否已存在
 if ! docker image inspect "$NACOS_IMAGE" >/dev/null 2>&1; then
@@ -28,7 +28,7 @@ echo "Waiting for Nacos to be healthy..."
 timeout=120
 elapsed=0
 while [ $elapsed -lt $timeout ]; do
-  if curl -fsS "http://localhost:8848/nacos/actuator/health" 2>/dev/null | grep -q "UP"; then
+  if curl -fsS "http://localhost:8848/" 2>/dev/null >/dev/null; then
     echo ""
     echo "✅ Nacos is healthy and ready!"
     echo ""

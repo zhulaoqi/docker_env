@@ -12,4 +12,4 @@ echo "Removing local data/logs..."
 rm -rf ./data ./logs
 
 echo "Done! To remove the image, run:"
-echo "  docker image rm nacos/nacos-server:v2.3.2-slim"
+echo "  docker image rm nacos/nacos-server:v3.1.1"
